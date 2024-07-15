@@ -152,3 +152,50 @@ class SimpleChat(App):
             self.message_input.text = ''
             # Save message to database here
             self.save_message_to_database(message, self.user_id, 'timestamp')
+
+    def save_message_to_database(self, message, user_id, timestamp):
+        # Temporary save to file
+        with open('chat_history.txt', 'a') as f:
+            f.write(f'{user_id} {timestamp} {message}\n')
+
+    def load_chat_history(self):
+        # Load chat history from database here
+        chat_history = ''
+        with open('chat_history.txt', 'r') as f:
+            for line in f:
+                line = line.rsplit(' ')
+                chat_history += f'User{line[0]}: {" ".join(line[2:])}\n'
+        return chat_history
+    
+    def load_chat_history_data(self):
+        # Load chat history from database here
+        chat_history = []
+        with open('chat_history.txt', 'r') as f:
+            for line in f:
+                line = line.rsplit(' ')
+                chat_history.append({'user_id': line[0], 'timestamp': line[1], 'message': ' '.join(line[2:])})
+        
+        return chat_history[::-1]
+
+
+    def add_message_to_chat_history(self, message):
+        self.chat_history.text += f'{self.user_id}: {message}\n'
+
+    
+
+    def refresh_chat_history(self, dt):
+        #self.chat_history.text = self.load_chat_history()
+        try:
+            self.scroll_view.remove_widget(self.b)
+        except:
+            pass
+        self.b = BoxLayout(orientation='vertical', size_hint_y=None, spacing=10, padding=3)
+        self.b.bind(minimum_height=self.b.setter('height'))
+        data = self.load_chat_history_data()
+        for message in data:
+            text = message['user_id'] + ': ' + message['message']
+            self.b.add_widget(Label(text=text, size_hint_y=None))
+        self.scroll_view.add_widget(self.b)
+
+if __name__ == '__main__':
+    SimpleChat().run()
